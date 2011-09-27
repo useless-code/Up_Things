@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 ##Here is a better example, an yes, the variable names suck. thats me\.::
 import pygame
 import math
