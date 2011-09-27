@@ -2,6 +2,7 @@
 import pygame
 import math
 from pygame.time import Clock
+from pygame import Color
 import random
 pygame.init()
 
@@ -11,21 +12,16 @@ tspeed = 1
 speed = tspeed
 count = 0
 
-def random_color():
-    global count
-    r = count % 0xF * 10 
-    g = int((count / 0x10) % 0xF) * 10
-    b = int((count / 0x100) % 0xF) * 10
-    count += 1
-    #r = random.randint(10, 255)
-    #g = random.randint(10, 255)
-    #b = random.randint(10, 255)
-    return (r, g, b)
+def random_color(count):
+    color = Color("white")
+    color.hsva = (count%360, 90, 80, 60)
+    return color
+
 
     
 class Circle(object):
-    def __init__(self, size, x=0, y=0, angle=0, speed=1):
-        self.color = random_color()
+    def __init__(self, size, x=0, y=0, angle=0, speed=1, color = (0,0,0)):
+        self.color = color
         self.size = size/2
         self.angle = math.radians(angle)
         self.speed = speed
@@ -41,7 +37,7 @@ class Circle(object):
         self.x += math.sin(self.angle) * self.speed
         self.y += math.cos(self.angle) * self.speed
         if speed > 5:
-            self.size += (speed / 2.0)   
+            self.size += speed*0   
         
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), int(self.size) )
     
@@ -49,31 +45,57 @@ class Circle(object):
         return "<Circle (%d, %d) %d>" % (self.x, self.y, self.angle)
         
 
-screen = pygame.display.set_mode((1024,768))
 
-def explode(circles, rotation, q, mov_speed):
-    #q =  70 #random.randint(0, 100) 
-    for n in xrange(q):
-        angle = ((n*360.0/q) + rotation) % 360
-        circles.add(Circle(5, x=512, y=384, angle=angle, speed=mov_speed))
+class Launcher(object):
+    
+    def __init__(self, x, y, queue):
+        self.x = x
+        self.y = y
+        self.queue = queue
+        self.cicles = 0
+        self.rot_speed = 0
+        self.mov_speed = 0
+        self.q = 0
+        self.rotation = 0
+        self.counter = random.randint(0, 0xFFFFFF)
+        self.color_change_speed = random.randint(1,3)
 
+    def explode(self):
+        for n in xrange(self.q):
+            angle = ((n*360.0/self.q) + self.rotation) % 360
+            color = random_color(self.counter)
+            self.counter += self.color_change_speed
+            self.queue.add(Circle(4, x=self.x, y=self.y, angle=angle, speed=self.mov_speed, color=color))
+    
+    def change(self):
+        if not self.cicles:
+            self.rot_speed = random.randint(1, 40) * random.choice([-1, 1])
+            self.mov_speed = random.randint(1, 14)
+            self.cicles = random.randint(100, 200)
+            self.q = random.randint(1, 6)
+        self.rotation += (self.rot_speed % 360)
+        self.cicles -= 1
+
+
+x , y = 1600, 900
+screen = pygame.display.set_mode((x, y))
 clock = Clock()
-rotation = 0
-cicles = 0
+
+launchers = []
+
+for n in xrange(1, 6):
+    launchers.append( Launcher(x/2, y/2, circles ))
+
 while True:
-    if not cicles:
-        rot_speed = random.randint(1, 40)
-        mov_speed = random.randint(1, 14)
-        cicles = random.randint(100, 200)
-        q = random.randint(1, 6)
-        print rot_speed, mov_speed, cicles, q
-    cicles -= 1
     screen.fill((0,0,0))
     circle_list = list(circles)
     for c in circle_list:
         c.update(screen)
-    if len(circles) < 10000:
-        explode(circles, rotation, q, mov_speed)
-    rotation += rot_speed
+    for launcher in launchers:
+        launcher.change()
+    if len(circles) < 5000:    
+        for launcher in launchers:
+            launcher.explode()
+    
     pygame.display.update()
     clock.tick(50)
