@@ -1,9 +1,12 @@
 ##Here is a better example, an yes, the variable names suck. thats me\.::
 import pygame
 import math
+import sys 
+import random
+
 from pygame.time import Clock
 from pygame import Color
-import random
+
 pygame.init()
 
 circles = set()
@@ -87,6 +90,9 @@ for n in xrange(1, 6):
     launchers.append( Launcher(x/2, y/2, circles ))
 
 while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT: sys.exit()
+
     screen.fill((0,0,0))
     circle_list = list(circles)
     for c in circle_list:
