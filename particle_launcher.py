@@ -35,9 +35,8 @@ class Circle(object):
 
     def update(self, screen):
         global circles
-        pos = (self.x, self.y)
-        limit = screen.get_size()
-        if pos > limit or pos < (0, 0):
+        x_size, y_size = screen.get_size()
+        if not ( (0 < self.x and self.x < x_size) and (0 < self.y and self.y < y_size)):
             circles.remove(self)
         self.x += math.sin(self.angle) * self.speed
         self.y += math.cos(self.angle) * self.speed
@@ -88,7 +87,7 @@ clock = Clock()
 
 launchers = []
 
-for n in xrange(1, 6):
+for n in xrange(1, 10):
     launchers.append( Launcher(x/2, y/2, circles ))
 
 while True:
